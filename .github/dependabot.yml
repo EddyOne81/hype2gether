@@ -1,0 +1,47 @@
+# Version updates. Every update PR runs the full CI and is reviewed before merging.
+version: 2
+updates:
+  - package-ecosystem: 'npm' # also covers pnpm
+    directories:
+      - '/'
+      - '/apps/mobile'
+      - '/packages/scoring'
+      - '/packages/shared'
+    schedule:
+      interval: 'weekly'
+    # Never propose a release younger than a week (pnpm also enforces a minimum release age).
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      # Expo SDK packages follow the versions bundled with the SDK: update them with
+      # `pnpm --filter @hype2gether/mobile exec expo install --fix`, not one by one.
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      - dependency-name: '@expo/*'
+      - dependency-name: 'eslint-config-expo'
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-*'
+      - dependency-name: '@types/react'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns:
+          - '*'
