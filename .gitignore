@@ -42,3 +42,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Expo generated types
+expo-env.d.ts
