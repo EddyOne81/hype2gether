@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+node_modules/
+coverage/
+dist/
+.expo/
+apps/mobile/expo-env.d.ts
+supabase/.temp/
+supabase/.branches/
