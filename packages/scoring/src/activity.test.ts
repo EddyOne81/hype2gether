@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activityRejection, countedRideMetres, isValidRide, type ActivityInput } from './activity';
+import { RULE_VERSION } from './constants';
 import { movementCentipoints, scoreDay } from './daily';
 import { centipointsToPoints } from './format';
 import { finalizeRound } from './round';
@@ -190,6 +191,7 @@ describe('finalizeRound with rides', () => {
       Array.from({ length: 7 }, () => ({ steps, checkin: null, activities }));
     const result = finalizeRound({
       hasOpenDispute: false,
+      ruleVersion: RULE_VERSION,
       members: [
         { memberId: 'walker', ratingBefore: 1000, days: week(9000, []) },
         { memberId: 'cyclist', ratingBefore: 1000, days: week(2000, [ride(25)]) },
