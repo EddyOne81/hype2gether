@@ -9,26 +9,26 @@ Prove two things with real users:
 
 ## Target users (pilot)
 
-Close-friend groups of 3–8 people, all on iPhone. Pilot via TestFlight. Many of them run or ride and already record those workouts with Apple Watch, Apple Fitness, Strava, Garmin or similar apps.
+Close-friend groups of 3–8 people, all on iPhone. Pilot via TestFlight. Many of them walk, run or ride and already record those workouts with Apple Watch, Apple Fitness, Strava, Garmin or similar apps.
 
 ## Core loops
 
 - **Move loop:** see rank → walk, run or ride → steps and workouts sync → see progress.
 - **Friend loop:** post a photo check-in → friends verify → recognition → come back.
-- **Share loop:** finish a run, a ride or the week → receive a card → share → viewers join via invite code/link.
+- **Share loop:** finish a walk, a run, a ride or the week → receive a card → share → viewers join via invite code/link.
 
 ## MVP scope
 
 In scope:
 
 - Sign in, HealthKit permission, sync status ("synced / not synced yet")
-- Two sports besides daily steps: **running** and **cycling**, read from workouts already recorded in Apple Health (the app does not record GPS itself)
+- Two sports besides daily steps: **running** and **cycling**, read from workouts already recorded in Apple Health (the app does not record GPS itself). Recorded **walking** workouts are read too, for their cards only: walking already scores through steps
 - Create or join a party via invite link or 6-character code
 - Fixed rules per round; member list locked when a round starts
 - Daily leaderboard
 - Photo check-in (camera only, not gallery), verify votes, reactions (reactions never score)
 - Weekly finalization, rating update, tier
-- Cards: weekly winner card + weekly summary card for everyone + an activity card for each run or ride; export 9:16 and 4:5
+- Cards: weekly winner card + weekly summary card for everyone + an activity card for each walk, run or ride; export 9:16 and 4:5
 - Minimal solo mode (personal weekly card, no rank)
 - Essential notifications, report content, leave party, delete account and data
 
@@ -41,7 +41,7 @@ Definitions: a **round** is 7 consecutive days in the party's time zone (default
 Daily points (max 100):
 
 - `movementPoints = 80 × min(validSteps / 10000 + validRideKm / 30, 1)`: 30 km of cycling counts like 10,000 steps (both take about 1.5 h). The 30 km value is a starting point to calibrate after the pilot; changing it bumps `RULE_VERSION`.
-- Running scores through steps: a run already adds its steps to the day's step total, so run distance never adds points (no double counting). Run distance is still shown on cards.
+- Running scores through steps: a run already adds its steps to the day's step total, so run distance never adds points (no double counting). Run distance is still shown on cards. The same applies to walking workouts.
 - `validRideKm` is the day's total distance of valid rides (see Activity rules). Points are computed in integer centipoints and rounded down: `floor(8000 × min(3 × validSteps + validRideMetres, 30000) / 30000)`.
 - `photoPoints = 20 × min(v / q, 1)` where `v` = valid verify votes on that day's counted check-in, `q = ceil((N − 1) / 2)`
 - One counted check-in per member per day. One vote per voter per check-in. No self-votes. Missing votes give partial points, never negative points.
@@ -68,9 +68,9 @@ Required test cases (from the brief):
 - 25,000 steps → 80 movement points, displayed steps still 25,000.
 - N = 5 distinct totals → ΔR = +20/+10/0/−10/−20; ties share ΔR.
 
-## Activity rules (running and cycling)
+## Activity rules (walking, running and cycling)
 
-- An activity is a running or cycling workout read from Apple Health: type, start, end, duration, distance, source app/device and whether it was entered manually.
+- An activity is a walking, running or cycling workout read from Apple Health: type, start, end, duration, distance, source app/device and whether it was entered manually.
 - An activity belongs to the day it **starts** on, in the party's time zone.
 - A ride is **valid** for scoring only if all of these hold (checked on the server):
   - recorded by a device or app, not entered manually;
@@ -86,6 +86,8 @@ Required test cases (from the brief):
 - Missing step data shows "not synced yet", never 0.
 - Step sync deadline: 12 h after the round ends. Votes close 24 h after the check-in is posted. Finalize only after both deadlines.
 - Rating updates only if every member has 7 valid days and no dispute is open; otherwise results stay **provisional** and ratings are not changed for anyone.
+- Step counts differ between devices (phone in a pocket or in hand, with or without a watch; other brands later). Nothing is calibrated per device: the leaderboard shows where each member's steps come from (for example "Apple Watch" or "iPhone"), so differences are visible.
+- The server flags implausible days for the party to see, starting with more than 60,000 steps in a day. A flag never changes points by itself; members can open a dispute, which keeps the round provisional. The threshold is a starting value to tune after the pilot.
 - Members who join mid-round wait for the next round. Members who leave stay in the current round's list.
 - Rules never change mid-round.
 - Labels must be truthful: "Steps synced", "Verified by party members", "Achievement in party". Never imply app-level verification of photos.
@@ -94,9 +96,10 @@ Required test cases (from the brief):
 
 Weekly cards: identity (name, avatar), main achievement (place or title, rating once final), context (party name, place / N, round dates), evidence (total synced steps, km run, km ridden, days with data, verified check-ins), share footer (app name, optional invite code/QR). Provisional cards are labelled. Party name and photos can be hidden before export. Never auto-post.
 
-Activity card (one per run or ride): sport, trimmed route shape, distance, duration, pace (run) or average speed (ride), date, labels from the activity rules, share footer. Same export formats and rules as weekly cards.
+Activity card (one per walk, run or ride): sport, trimmed route shape, distance, duration, pace (walk, run) or average speed (ride), date, labels from the activity rules, share footer. Same export formats and rules as weekly cards.
 
 ## Future works (do not build now; keep the data model open)
 
+- Android: step counts differ between brands (Health Connect, Samsung Health and others). Decide in an ADR, using pilot data, how to keep parties with mixed devices fair before shipping Android.
 - Limited regional card kits, HCMC first, keyed by **new ward code** (post-2025 administrative units), seasonal and serial-numbered (`#023/500`), earned only, never sold.
 - Optional collectible/NFT later. Today: each card and kit grant has a serial, owner, evidence and image hash in Postgres.

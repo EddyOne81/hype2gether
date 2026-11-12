@@ -1,6 +1,6 @@
 # Hype2gether
 
-iOS-first app where small groups of close friends compete on weekly movement (steps, runs and rides) and daily photo check-ins, and share achievement cards for each run, ride and week.
+iOS-first app where small groups of close friends compete on weekly movement (steps, runs and rides) and daily photo check-ins, and share achievement cards for each walk, run, ride and week.
 
 Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), then:
 

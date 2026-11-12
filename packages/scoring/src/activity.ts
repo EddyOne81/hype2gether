@@ -1,7 +1,7 @@
 import { MAX_RIDE_SPEED_KMH, MIN_RIDE_SECONDS } from './constants';
 import { assertNonNegativeInteger } from './validation';
 
-export type Sport = 'run' | 'ride';
+export type Sport = 'walk' | 'run' | 'ride';
 
 /** A run or ride summary as read from Apple Health. Routes never reach the scoring engine. */
 export interface ActivityInput {
@@ -51,7 +51,7 @@ export function isValidRide(activity: ActivityInput): boolean {
 /**
  * Ride distance that counts for one day: valid rides only, and within each group of rides that
  * overlap in time (the same ride recorded by two apps), only the longest distance counts.
- * Runs never count here: they already score through steps.
+ * Walks and runs never count here: they already score through steps.
  */
 export function countedRideMetres(activities: readonly ActivityInput[]): number {
   const rides = activities

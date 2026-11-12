@@ -25,6 +25,10 @@ const ride = (km: number, startMin = 0, overrides: Partial<ActivityInput> = {}):
   };
 };
 const run = (km: number, startMin = 0): ActivityInput => ({ ...ride(km, startMin), sport: 'run' });
+const walk = (km: number, startMin = 0): ActivityInput => ({
+  ...ride(km, startMin),
+  sport: 'walk',
+});
 
 const ids = ['m1', 'm2', 'm3', 'm4', 'm5'];
 const day = (steps: number | null, activities: ActivityInput[]) =>
@@ -194,5 +198,16 @@ describe('finalizeRound with rides', () => {
     });
     expect(result.status).toBe('final');
     expect(result.results.map((r) => r.memberId)).toEqual(['cyclist', 'walker', 'idle']);
+  });
+});
+
+describe('walks', () => {
+  it('never add ride distance (they score through steps, like runs)', () => {
+    expect(countedRideMetres([walk(5)])).toBe(0);
+    expect(day(6000, [walk(5)]).movementCentipoints).toBe(4800);
+  });
+
+  it('do not hide an overlapping valid ride', () => {
+    expect(countedRideMetres([walk(12, 0), ride(10, 5)])).toBe(10_000);
   });
 });
