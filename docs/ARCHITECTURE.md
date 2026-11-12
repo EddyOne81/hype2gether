@@ -105,4 +105,4 @@ CI uses its own isolated stack and never touches the hosted dev project or anyon
 
 ## Decision log
 
-Record decisions as `docs/adr/NNNN-title.md` (context, decision, consequences). Seed ADRs: 0001 monorepo + pnpm, 0002 Supabase, 0003 server-authoritative scoring, 0004 Expo CNG (no committed native folders), 0005 public repository, 0006 running and cycling with rule v2, 0007 walking cards and step sources.
+Decisions are recorded as ADRs in `docs/adr/`; see the [index](adr/README.md).
