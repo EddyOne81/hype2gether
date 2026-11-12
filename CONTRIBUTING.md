@@ -11,7 +11,7 @@ Setup and commands are in the [README](README.md).
 
 ## Project in one paragraph
 
-Hype2gether is an iOS-first mobile app where small groups of close friends (3–8 people) compete on weekly movement (steps, plus running and cycling workouts from Apple Health) and daily photo check-ins verified by party votes. Each run, ride and week ends with a shareable achievement card (9:16 and 4:5) that users flex on social media, Strava-style. The card is the product's centrepiece.
+Hype2gether is an iOS-first mobile app where small groups of close friends (3–8 people) compete on weekly movement (steps, plus walking, running and cycling workouts from Apple Health) and daily photo check-ins verified by party votes. Each walk, run, ride and week ends with a shareable achievement card (9:16 and 4:5) that users flex on social media, Strava-style. The card is the product's centrepiece.
 
 ## Naming
 
@@ -28,7 +28,7 @@ Hype2gether is an iOS-first mobile app where small groups of close friends (3–
 ## Stack
 
 - App: React Native + Expo (dev build, Expo Router), TypeScript strict. iOS first; Android later from the same code.
-- Health data: HealthKit via a maintained React Native library. Daily step aggregates plus running and cycling workout summaries; workout routes are read on the device only, to draw cards.
+- Health data: HealthKit via a maintained React Native library. Daily step aggregates plus walking, running and cycling workout summaries; workout routes are read on the device only, to draw cards.
 - Backend: Supabase (Postgres, Auth, Storage, Realtime, Edge Functions, scheduled jobs). Hosted dev project, no local Docker required.
 - Game logic: `packages/scoring`, pure TypeScript with zero runtime dependencies, fully unit-tested.
 - Card: React Native Skia + view capture; skins are data (JSON + assets), not code.
