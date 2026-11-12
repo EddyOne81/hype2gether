@@ -34,6 +34,17 @@ updates:
       - dependency-name: 'react-native'
       - dependency-name: 'react-native-*'
       - dependency-name: '@types/react'
+      # Held back on purpose; raise them together in a reviewed PR:
+      # eslint-config-expo does not support ESLint 10 yet, typescript-eslint needs TypeScript < 6.1,
+      # and @types/node follows the Node.js major in .node-version.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'github-actions'
     directory: '/'
