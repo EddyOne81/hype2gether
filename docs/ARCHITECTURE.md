@@ -14,7 +14,7 @@ hype2gether/
 ├─ apps/mobile/
 │  ├─ app/                    Expo Router screens (thin)
 │  └─ src/
-│     ├─ features/            party, leaderboard, checkin, card, auth, profile
+│     ├─ features/            party, leaderboard, activity, checkin, card, auth, profile
 │     ├─ services/            supabase client, health (HealthKit adapter), notifications
 │     ├─ components/          shared UI
 │     └─ config/env.ts        reads EXPO_PUBLIC_* only, validated with zod
@@ -34,7 +34,7 @@ Dependency direction: `apps/mobile` → `packages/*`; `supabase/functions` → `
 ## Domain modules
 
 Code is organised by domain:
-`auth`, `profile`, `party`, `round`, `steps`, `checkin`, `scoring`, `card`, `notification`, `moderation`.
+`auth`, `profile`, `party`, `round`, `steps`, `activity`, `checkin`, `scoring`, `card`, `notification`, `moderation`.
 
 - App: `apps/mobile/src/features/<domain>/` → `api.ts` (Supabase calls only), `hooks.ts` (TanStack Query), `screens/`, `components/`. Screens never call Supabase directly.
 - Server: one Edge Function per use case, named `<domain>-<action>` (e.g. `party-join`, `round-finalize`), each validating input with a zod schema from `packages/shared`.
@@ -47,39 +47,42 @@ Code is organised by domain:
 
 ## Data model (MVP)
 
-| Table                | Key columns                                                                                 | Notes                                         |
-| -------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| profiles             | id (= auth user), display_name, avatar_path                                                 | no health data                                |
-| parties              | id, name, timezone, created_by                                                              | private by default                            |
-| invites              | code (unique), party_id, expires_at                                                         | server-generated                              |
-| memberships          | party_id, user_id, joined_at, left_at                                                       |                                               |
-| rounds               | id, party_id, starts_at, ends_at, timezone, rule_version, status (active/provisional/final) |                                               |
-| round_members        | round_id, user_id                                                                           | locked list (N)                               |
-| daily_step_summaries | round_id, user_id, day, steps, source, synced_at                                            | unique (round_id, user_id, day)               |
-| checkins             | id, round_id, user_id, day, photo_path, created_at                                          | one counted per user/day                      |
-| votes                | checkin_id, voter_id, created_at                                                            | unique (checkin_id, voter_id), voter ≠ author |
-| reactions            | checkin_id, user_id, emoji                                                                  | never scores                                  |
-| daily_points         | round_id, user_id, day, step_points, photo_points                                           | written by server only                        |
-| weekly_results       | round_id, user_id, total, place, delta_r, status                                            | written by server only                        |
-| rating_history       | party_id, user_id, round_id, rating_before, rating_after                                    | append-only                                   |
-| cards                | id, serial, user_id, round_id, kind, rule_version, image_hash, created_at                   | from final/provisional results                |
-| reports              | id, target_type, target_id, reporter_id, status                                             | moderation                                    |
+| Table                | Key columns                                                                                                                     | Notes                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| profiles             | id (= auth user), display_name, avatar_path                                                                                     | no health data                                             |
+| parties              | id, name, timezone, created_by                                                                                                  | private by default                                         |
+| invites              | code (unique), party_id, expires_at                                                                                             | server-generated                                           |
+| memberships          | party_id, user_id, joined_at, left_at                                                                                           |                                                            |
+| rounds               | id, party_id, starts_at, ends_at, timezone, rule_version, status (active/provisional/final)                                     |                                                            |
+| round_members        | round_id, user_id                                                                                                               | locked list (N)                                            |
+| daily_step_summaries | round_id, user_id, day, steps, source, synced_at                                                                                | unique (round_id, user_id, day)                            |
+| activities           | id, user_id, sport (run/ride), started_at, ended_at, duration_s, distance_m, source, source_workout_id, user_entered, synced_at | unique (user_id, source_workout_id); no route, no location |
+| checkins             | id, round_id, user_id, day, photo_path, created_at                                                                              | one counted per user/day                                   |
+| votes                | checkin_id, voter_id, created_at                                                                                                | unique (checkin_id, voter_id), voter ≠ author              |
+| reactions            | checkin_id, user_id, emoji                                                                                                      | never scores                                               |
+| daily_points         | round_id, user_id, day, movement_points, photo_points                                                                           | written by server only                                     |
+| weekly_results       | round_id, user_id, total, place, delta_r, status                                                                                | written by server only                                     |
+| rating_history       | party_id, user_id, round_id, rating_before, rating_after                                                                        | append-only                                                |
+| cards                | id, serial, user_id, round_id, kind, rule_version, image_hash, created_at                                                       | from final/provisional results                             |
+| reports              | id, target_type, target_id, reporter_id, status                                                                                 | moderation                                                 |
 
 Future (do not create yet): zones, kit_definitions, kit_grants.
 
 ## Access rules (RLS summary)
 
 - A user reads a party's data only if they are a member.
-- Clients may insert: their own step summaries, check-ins, votes, reactions, reports.
+- Clients may insert: their own step summaries, activities, check-ins, votes, reactions, reports.
+- Members of a round can read the activities of the round's members that start inside the round.
 - Clients may never write: daily_points, weekly_results, rating_history, cards, rounds.status.
 - Storage: private `checkins` bucket, path `{party_id}/{round_id}/{user_id}/...`, read via signed URLs for members only.
 
 ## Key flows
 
 1. **Step sync:** app opens → HealthKit daily aggregate per day in party time zone → upsert daily totals → server recomputes the day's points. No reliance on background sync; push reminders before the 12 h deadline.
-2. **Check-in & vote:** camera capture → upload to private bucket → insert check-in → members vote (24 h window).
-3. **Finalize round:** scheduled function runs after deadlines → loads facts → `packages/scoring` → writes results in one transaction → status final or provisional. Safe to re-run.
-4. **Card:** client renders from stored results with Skia, captures 9:16/4:5 PNG, user previews and shares via share sheet.
+2. **Activity sync:** app opens → HealthKit running and cycling workouts since the last sync → upsert summaries (never the route) → server marks validity and recomputes the affected days' points.
+3. **Check-in & vote:** camera capture → upload to private bucket → insert check-in → members vote (24 h window).
+4. **Finalize round:** scheduled function runs after deadlines → loads facts → `packages/scoring` → writes results in one transaction → status final or provisional. Safe to re-run.
+5. **Card:** client renders from stored results with Skia, captures 9:16/4:5 PNG, user previews and shares via share sheet. Activity cards read the route from HealthKit on the device at render time and trim it before drawing.
 
 ## Testing strategy
 
@@ -102,4 +105,4 @@ CI uses its own isolated stack and never touches the hosted dev project or anyon
 
 ## Decision log
 
-Record decisions as `docs/adr/NNNN-title.md` (context, decision, consequences). Seed ADRs: 0001 monorepo + pnpm, 0002 Supabase, 0003 server-authoritative scoring, 0004 Expo CNG (no committed native folders).
+Record decisions as `docs/adr/NNNN-title.md` (context, decision, consequences). Seed ADRs: 0001 monorepo + pnpm, 0002 Supabase, 0003 server-authoritative scoring, 0004 Expo CNG (no committed native folders), 0005 public repository, 0006 running and cycling with rule v2.

@@ -25,9 +25,9 @@ Rule of thumb: anything prefixed `EXPO_PUBLIC_` is shipped inside the app and re
 
 ## App data rules
 
-- Health data: only per-day step totals with source and sync time. No raw samples, no location.
+- Health data: only per-day step totals and run/ride summaries (sport, times, distance, source, manual-entry flag). No raw samples, no location: GPS routes stay on the phone and are only drawn, trimmed, on cards the user chooses to export.
 - Photos: private bucket, signed URLs with short expiry, removable by the owner.
-- Account deletion removes profile, memberships' personal data, check-ins, photos and step summaries.
+- Account deletion removes profile, memberships' personal data, check-ins, photos, step summaries and activities.
 - Health data is sensitive personal data under Vietnamese law; legal review before public release.
 
 ## If a secret leaks
