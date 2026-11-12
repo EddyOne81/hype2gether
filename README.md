@@ -39,6 +39,7 @@ App config: copy `apps/mobile/.env.example` to `apps/mobile/.env` and fill in th
 | `pnpm db:start` / `db:stop`               | Local Supabase stack (Docker)                                  |
 | `pnpm test:db`                            | RLS / SQL tests against the local stack                        |
 | `pnpm gen:types`                          | Regenerate `packages/shared/src/db.types.ts` from the local DB |
+| `pnpm build:functions`                    | Regenerate the Edge Function copy of the shared packages       |
 
 ## Layout
 

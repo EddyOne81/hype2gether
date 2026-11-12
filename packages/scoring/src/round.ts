@@ -1,4 +1,4 @@
-import { ROUND_DAYS } from './constants';
+import { ROUND_DAYS, RULE_VERSION } from './constants';
 import { scoreDay, type DailyInput, type DailyScore } from './daily';
 import { rankMembers } from './ranking';
 import { applyRatingDelta, ratingDelta } from './rating';
@@ -18,6 +18,11 @@ export interface RoundInput {
   /** The locked member list (N members). */
   members: readonly RoundMemberInput[];
   hasOpenDispute: boolean;
+  /**
+   * The rule version stored on the round when it started. A round is always scored under the
+   * rules it was played under, so this build refuses a round it does not implement.
+   */
+  ruleVersion: number;
 }
 
 export interface MemberResult {
@@ -34,6 +39,8 @@ export interface MemberResult {
 
 export interface RoundResult {
   status: RoundStatus;
+  /** The version these results were produced under. Store it alongside them. */
+  ruleVersion: number;
   results: MemberResult[];
 }
 
@@ -43,6 +50,13 @@ export interface RoundResult {
  * so finalization is safe to re-run.
  */
 export function finalizeRound(input: RoundInput): RoundResult {
+  if (input.ruleVersion !== RULE_VERSION) {
+    throw new RangeError(
+      `This build implements rule version ${RULE_VERSION}, but the round was started under ` +
+        `version ${input.ruleVersion}. Score it with a build that implements its version ` +
+        'rather than silently applying today’s rules to a past round.',
+    );
+  }
   const memberIds = input.members.map((m) => m.memberId);
   assertPartySize(memberIds.length);
   assertUniqueIds(memberIds, 'members');
@@ -84,5 +98,5 @@ export function finalizeRound(input: RoundInput): RoundResult {
   });
 
   results.sort((a, b) => a.place - b.place || a.memberId.localeCompare(b.memberId));
-  return { status: eligible ? 'final' : 'provisional', results };
+  return { status: eligible ? 'final' : 'provisional', ruleVersion: RULE_VERSION, results };
 }

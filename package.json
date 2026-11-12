@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "prepare": "lefthook install",
     "gen:types": "node scripts/gen-types.mjs",
+    "build:functions": "node scripts/build-functions-shared.mjs",
     "test:db": "supabase test db",
     "db:start": "supabase start -x studio,imgproxy,mailpit,logflare,vector,supavisor,edge-runtime",
     "db:stop": "supabase stop --no-backup"

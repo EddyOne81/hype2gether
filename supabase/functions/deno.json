@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@hype2gether/scoring": "./_shared/scoring/index.ts",
+    "@hype2gether/shared": "./_shared/shared/index.ts",
+    "zod": "npm:zod@4.6.7"
+  }
+}
