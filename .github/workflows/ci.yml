@@ -25,10 +25,18 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          # Pinned to the Deno the Supabase Edge Runtime is built on, so a passing check means
+          # the function will boot there. Bump it together with the runtime, never on its own.
+          deno-version: v2.1.4
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # ESLint ignores `supabase/` and `pnpm typecheck` only walks the workspace packages, so
+      # without this the Edge Functions would be the one place no tool looks.
+      - run: pnpm check:functions
 
   gitleaks:
     name: Secret scan

@@ -110,7 +110,7 @@ policies decide which rows. `anon` holds no table access.
 | Scoring engine       | Vitest, table-driven cases from PRODUCT_BRIEF                                                    | locally + CI                                  |
 | RLS and SQL          | pgTAP (or SQL tests) against a throw-away local Supabase (`supabase start`)                      | CI (Docker available there); optional locally |
 | Invariant check      | SQL test: no table in `public` without RLS + policy; no client write grant on server-only tables | CI                                            |
-| Edge Functions       | Deno tests with mocked Supabase client                                                           | locally + CI                                  |
+| Edge Functions       | `deno check` and `deno lint` now; Deno tests with a mocked Supabase client from ROUND-02         | CI (Deno pinned to the Edge Runtime version)  |
 | App logic            | Jest/Vitest for hooks and pure UI logic                                                          | locally + CI                                  |
 | End-to-end on device | manual checklist per feature code during pilot; automated mobile e2e later                       | physical iPhone                               |
 

@@ -9,3 +9,4 @@ supabase/.branches/
 
 # Generated mirror of the shared packages (see scripts/build-functions-shared.mjs)
 supabase/functions/_shared/
+supabase/functions/deno.lock
