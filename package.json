@@ -6,7 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "lint": "eslint . && pnpm --filter mobile lint && prettier --check .",
+    "lint": "eslint . && pnpm --filter @hype2gether/mobile lint && prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "format": "prettier --write .",
