@@ -13,6 +13,7 @@
     "prepare": "lefthook install",
     "gen:types": "node scripts/gen-types.mjs",
     "build:functions": "node scripts/build-functions-shared.mjs",
+    "check:functions": "node scripts/check-functions.mjs",
     "test:db": "supabase test db",
     "db:start": "supabase start -x studio,imgproxy,mailpit,logflare,vector,supavisor,edge-runtime",
     "db:stop": "supabase stop --no-backup"

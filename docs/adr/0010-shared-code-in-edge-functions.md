@@ -41,8 +41,10 @@ Round finalization is the next piece of work and cannot be written without a way
   `pnpm gen:types` after a migration. Both are checked in the same CI job.
 - The mirror is readable TypeScript, so a reviewer can diff it and see exactly what the server
   will run. A bundler would have been less work and less reviewable.
-- Deno tests for Edge Functions still need Deno on the CI runner; that arrives with the first
-  function that has logic worth testing (ROUND-02).
+- CI type-checks and lints the functions with Deno itself, pinned to the version the Edge
+  Runtime is built on, because no other tool in the repo looks at `supabase/`. That is also
+  what catches a mirror whose specifiers do not resolve, which otherwise only appears as a
+  boot error. Deno tests for function logic arrive with ROUND-02.
 - If the packages ever gain a runtime dependency, the import map needs an `npm:` entry for it.
   `packages/scoring` cannot: the linter now refuses any import that is not one of its own
   modules.
