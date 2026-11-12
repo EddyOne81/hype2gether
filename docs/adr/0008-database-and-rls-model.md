@@ -32,6 +32,9 @@ authoritative; this record settles how the database makes that true rather than 
   functions.
 - **Points are stored in centipoints and every column says so.** A column named
   `movement_points` holding 8000 for 80 points is a bug waiting to happen.
+- **Integrity triggers are `security definer`.** They guard what the engine depends on, so
+  they have to see the real state rather than the caller's filtered view — otherwise hiding a
+  check-in from its reporter would also hide it from the trigger that validates their vote.
 - **Hard invariants are triggers, not just policies**, so no writer — service role included —
   can create data the engine would have to discard: a fact belongs to a day inside its round, is
   filed by someone on the locked member list, and a vote is never a self-vote.
@@ -52,8 +55,6 @@ authoritative; this record settles how the database makes that true rather than 
   which layer refused a request rather than only that something did.
 - Creating a party or joining one needs an Edge Function before PARTY-01 and PARTY-02 can ship;
   the client cannot do it with a plain insert.
-- Disputes are referenced by `finalizeRound` but have no table yet. ROUND-02 either adds one or
-  decides disputes are tracked elsewhere; until then `hasOpenDispute` is always false.
 - The activity read policy is a correlated subquery. At party sizes of 3 to 8 that is
   comfortable; if it ever is not, the scale path is a server-written `round_activities` join
   table, which would also make "which activities counted" auditable — not a weaker policy.

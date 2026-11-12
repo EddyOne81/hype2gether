@@ -55,6 +55,7 @@ alter table public.memberships enable row level security;
 create function app.assert_party_capacity()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare

@@ -5,7 +5,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(17);
 
 create function pg_temp.write_as(p_user uuid, p_statement text) returns text
 language plpgsql as $$
@@ -171,6 +171,20 @@ select is(
   1::bigint,
   'the reported check-in is still visible to everyone else'
 );
+
+-- Integrity triggers read the real state, not the caller's filtered view: they are
+-- `security definer`. Without that, reporting a check-in would hide it from the trigger too,
+-- and the reporter's own vote would be refused with a confusing "unknown check-in".
+select is(pg_temp.write_as('d0000000-0000-4000-8000-000000000003', $q$
+  insert into public.reports (target_type, target_id, reporter_id, reason)
+  values ('checkin', 'd0000000-0000-4000-8000-00000000000c',
+          'd0000000-0000-4000-8000-000000000003', 'Also reporting')
+$q$), null, 'a second member reports the same check-in');
+
+select is(pg_temp.write_as('d0000000-0000-4000-8000-000000000003',
+  $q$insert into public.votes (checkin_id, voter_id)
+     values ('d0000000-0000-4000-8000-00000000000c', 'd0000000-0000-4000-8000-000000000003')$q$),
+  null, 'hiding a check-in from its reporter does not hide it from the integrity triggers');
 
 select * from finish();
 

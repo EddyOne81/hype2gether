@@ -35,6 +35,7 @@ alter table public.checkins enable row level security;
 create function app.assert_checkin_photo_path()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
@@ -76,6 +77,7 @@ alter table public.votes enable row level security;
 create function app.assert_vote_allowed()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare

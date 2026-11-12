@@ -67,6 +67,7 @@ alter table public.round_members enable row level security;
 create function app.assert_day_in_round()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
@@ -90,6 +91,7 @@ $$;
 create function app.assert_round_membership()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 begin
