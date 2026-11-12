@@ -1,4 +1,10 @@
-import { MAX_PHOTO_CENTIPOINTS, MAX_STEP_CENTIPOINTS, STEP_CAP } from './constants';
+import { countedRideMetres, type ActivityInput } from './activity';
+import {
+  MAX_MOVEMENT_CENTIPOINTS,
+  MAX_PHOTO_CENTIPOINTS,
+  RIDE_METRES_CAP,
+  STEP_CAP,
+} from './constants';
 import { assertNonNegativeInteger, assertPartySize } from './validation';
 
 /** Verify votes needed for full photo points: q = ceil((N − 1) / 2). */
@@ -8,13 +14,16 @@ export function requiredVotes(memberCount: number): number {
 }
 
 /**
- * stepPoints = 80 × min(steps / 10000, 1), in centipoints, rounded down.
- * Steps above the cap are still real steps for display; they just earn no extra points.
+ * movementPoints = 80 × min(steps / 10000 + rideKm / 30, 1), in centipoints, rounded down.
+ * Both terms are scaled to metres of riding (1 step = 3 m) so the sum stays an exact integer.
+ * Steps and distance above the cap are still real for display; they just earn no extra points.
  */
-export function stepCentipoints(steps: number): number {
+export function movementCentipoints(steps: number, rideMetres: number): number {
   assertNonNegativeInteger(steps, 'steps');
-  const counted = Math.min(steps, STEP_CAP);
-  return Math.floor((MAX_STEP_CENTIPOINTS * counted) / STEP_CAP);
+  assertNonNegativeInteger(rideMetres, 'rideMetres');
+  const stepsAsMetres = (Math.min(steps, STEP_CAP) * RIDE_METRES_CAP) / STEP_CAP;
+  const counted = Math.min(stepsAsMetres + Math.min(rideMetres, RIDE_METRES_CAP), RIDE_METRES_CAP);
+  return Math.floor((MAX_MOVEMENT_CENTIPOINTS * counted) / RIDE_METRES_CAP);
 }
 
 export interface CheckinVotes {
@@ -47,11 +56,15 @@ export interface DailyInput {
   steps: number | null;
   /** The day's counted check-in, or null when the member did not check in. */
   checkin: CheckinVotes | null;
+  /** Runs and rides that start on this day in the party's time zone. */
+  activities: readonly ActivityInput[];
 }
 
 export interface DailyScore {
-  stepCentipoints: number;
+  movementCentipoints: number;
   photoCentipoints: number;
+  /** Ride distance that counted for points, after validity checks and overlap removal. */
+  countedRideMetres: number;
   totalCentipoints: number;
   /** False means "not synced yet": the UI must never show this as 0 steps. */
   hasStepData: boolean;
@@ -70,14 +83,16 @@ export function scoreDay(
   if (day.checkin && day.checkin.authorId !== memberId) {
     throw new Error('Check-in author does not match the scored member');
   }
-  const steps = day.steps === null ? 0 : stepCentipoints(day.steps);
+  const rideMetres = countedRideMetres(day.activities);
+  const movement = movementCentipoints(day.steps ?? 0, rideMetres);
   const photo = day.checkin
     ? photoCentipoints(countValidVotes(day.checkin, roundMemberIds), memberCount)
     : 0;
   return {
-    stepCentipoints: steps,
+    movementCentipoints: movement,
     photoCentipoints: photo,
-    totalCentipoints: steps + photo,
+    countedRideMetres: rideMetres,
+    totalCentipoints: movement + photo,
     hasStepData: day.steps !== null,
   };
 }

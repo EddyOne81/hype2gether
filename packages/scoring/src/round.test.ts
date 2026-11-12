@@ -5,7 +5,7 @@ import { finalizeRound, type RoundMemberInput } from './round';
 import { weeklyTotal } from './weekly';
 
 const fullWeek = (steps: number): DailyInput[] =>
-  Array.from({ length: 7 }, () => ({ steps, checkin: null }));
+  Array.from({ length: 7 }, () => ({ steps, checkin: null, activities: [] }));
 
 const member = (memberId: string, days: DailyInput[], ratingBefore = STARTING_RATING) => ({
   memberId,
@@ -14,15 +14,16 @@ const member = (memberId: string, days: DailyInput[], ratingBefore = STARTING_RA
 });
 
 describe('RULE_VERSION', () => {
-  it('is 1', () => {
-    expect(RULE_VERSION).toBe(1);
+  it('is 2', () => {
+    expect(RULE_VERSION).toBe(2);
   });
 });
 
 describe('weeklyTotal', () => {
   it('sums daily totals and counts days with data', () => {
     const day = (total: number, hasStepData = true) => ({
-      stepCentipoints: total,
+      movementCentipoints: total,
+      countedRideMetres: 0,
       photoCentipoints: 0,
       totalCentipoints: total,
       hasStepData,
@@ -34,7 +35,13 @@ describe('weeklyTotal', () => {
   });
 
   it('rejects more than 7 days', () => {
-    const day = { stepCentipoints: 0, photoCentipoints: 0, totalCentipoints: 0, hasStepData: true };
+    const day = {
+      movementCentipoints: 0,
+      countedRideMetres: 0,
+      photoCentipoints: 0,
+      totalCentipoints: 0,
+      hasStepData: true,
+    };
     expect(() => weeklyTotal(Array.from({ length: 8 }, () => day))).toThrow(RangeError);
   });
 });
@@ -63,7 +70,7 @@ describe('finalizeRound', () => {
   it('missing step data → provisional, nobody’s rating changes, but places are still shown', () => {
     const members = [...fiveMembers];
     const partial = fullWeek(10_000);
-    partial[3] = { steps: null, checkin: null };
+    partial[3] = { steps: null, checkin: null, activities: [] };
     members[4] = member('e', partial);
 
     const { status, results } = finalizeRound({ members, hasOpenDispute: false });
@@ -100,7 +107,11 @@ describe('finalizeRound', () => {
 
   it('counts votes only from locked members, excluding self-votes and duplicates', () => {
     const days = fullWeek(10_000);
-    days[0] = { steps: 10_000, checkin: { authorId: 'a', voterIds: ['a', 'b', 'b', 'stranger'] } };
+    days[0] = {
+      steps: 10_000,
+      checkin: { authorId: 'a', voterIds: ['a', 'b', 'b', 'stranger'] },
+      activities: [],
+    };
     const members = [
       member('a', days),
       member('b', fullWeek(10_000)),
@@ -128,7 +139,7 @@ describe('finalizeRound', () => {
     expect(() =>
       finalizeRound({
         members: [
-          member('a', [...fullWeek(1), { steps: 1, checkin: null }]),
+          member('a', [...fullWeek(1), { steps: 1, checkin: null, activities: [] }]),
           member('b', []),
           member('c', []),
         ],
