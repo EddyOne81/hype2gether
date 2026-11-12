@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Expo / React Native (native folders are generated via CNG)
+.expo/
+dist/
+web-build/
+ios/
+android/
+*.jsbundle
+
+# Environment and secrets — only .env.example is committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.mobileprovision
+*.jks
+*.keystore
+credentials.json
+secrets/
+
+# Supabase local state
+supabase/.temp/
+supabase/.branches/
+
+# Build, test, logs
+coverage/
+.turbo/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
