@@ -57,12 +57,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # A migration that has already been merged has run against the hosted databases. Editing
+      # it makes their schema disagree with the repository, so the only way forward is a new
+      # migration.
+      - name: Fail if an already-merged migration changed
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          edited=$(git diff --name-only --diff-filter=MDR \
+            "origin/${{ github.base_ref }}...HEAD" -- supabase/migrations/)
+          if [ -n "$edited" ]; then
+            echo "Migrations are append-only. These were modified, deleted or renamed:"
+            echo "$edited"
+            exit 1
+          fi
       # Throw-away local stack on the runner; never touches the hosted projects or any .env.
       - run: pnpm db:start
       - run: pnpm test:db
@@ -70,5 +86,9 @@ jobs:
         run: |
           pnpm gen:types
           git diff --exit-code -- packages/shared/src/db.types.ts
+      - name: Fail if the Edge Function copy of the shared packages is stale
+        run: |
+          pnpm build:functions
+          git diff --exit-code -- supabase/functions/_shared
       - if: always()
         run: pnpm db:stop
