@@ -18,7 +18,9 @@ Rule of thumb: anything prefixed `EXPO_PUBLIC_` is shipped inside the app and re
 - `.env*` files are git-ignored. Only `.env.example` (keys with empty or fake values) is committed.
 - No real user data, photos, step data or screenshots with personal info in the repo. Seeds use fake data.
 - gitleaks runs as a pre-commit hook and in CI. A failing scan blocks the merge.
-- GitHub settings: private repo, secret scanning + push protection on, `main` protected (PR + passing CI required), Dependabot alerts on.
+- GitHub settings: public repo (see ADR 0005), secret scanning + push protection on, `main` protected (PR + passing CI required), Dependabot alerts on.
+- Because the repo is public, anything committed is published immediately and permanently (forks, caches). Treat every push as public; a leaked key must be rotated, not just deleted from history.
+- Actions from fork pull requests require approval; workflows triggered by forks never receive secrets.
 - Lockfile committed; new dependencies need a reason in the PR description. Prefer well-maintained packages.
 
 ## App data rules

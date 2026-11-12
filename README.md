@@ -10,6 +10,8 @@ Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), then:
 - [Features](docs/FEATURES.md): feature codes and acceptance criteria
 - [Decisions](docs/adr/)
 
+Licence: all rights reserved, see [`LICENSE`](LICENSE). The code is public for viewing only.
+
 ## Requirements
 
 - Node.js ≥ 22.13
