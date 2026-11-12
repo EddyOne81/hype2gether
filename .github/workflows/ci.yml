@@ -73,7 +73,7 @@ jobs:
         run: |
           git fetch --no-tags origin "${{ github.base_ref }}"
           edited=$(git diff --name-only --diff-filter=MDR \
-            "origin/${{ github.base_ref }}...HEAD" -- supabase/migrations/)
+            "origin/${{ github.base_ref }}...HEAD" -- 'supabase/migrations/*.sql')
           if [ -n "$edited" ]; then
             echo "Migrations are append-only. These were modified, deleted or renamed:"
             echo "$edited"
