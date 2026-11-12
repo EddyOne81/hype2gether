@@ -249,6 +249,58 @@ export type Database = {
           },
         ];
       };
+      disputes: {
+        Row: {
+          created_at: string;
+          id: string;
+          opened_by: string;
+          reason: string;
+          round_id: string;
+          status: Database['public']['Enums']['dispute_status'];
+          target_id: string;
+          target_type: Database['public']['Enums']['dispute_target'];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          opened_by: string;
+          reason: string;
+          round_id: string;
+          status?: Database['public']['Enums']['dispute_status'];
+          target_id: string;
+          target_type: Database['public']['Enums']['dispute_target'];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          opened_by?: string;
+          reason?: string;
+          round_id?: string;
+          status?: Database['public']['Enums']['dispute_status'];
+          target_id?: string;
+          target_type?: Database['public']['Enums']['dispute_target'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'disputes_opened_by_fkey';
+            columns: ['opened_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'disputes_round_id_fkey';
+            columns: ['round_id'];
+            isOneToOne: false;
+            referencedRelation: 'rounds';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       invites: {
         Row: {
           code: string;
@@ -685,6 +737,8 @@ export type Database = {
     };
     Enums: {
       card_kind: 'weekly_winner' | 'weekly_summary' | 'solo_weekly' | 'activity';
+      dispute_status: 'open' | 'withdrawn' | 'resolved';
+      dispute_target: 'daily_step_summary' | 'activity';
       point_flag: 'implausible_steps';
       report_status: 'open' | 'reviewed' | 'dismissed';
       report_target: 'checkin';
@@ -803,6 +857,8 @@ export const Constants = {
   public: {
     Enums: {
       card_kind: ['weekly_winner', 'weekly_summary', 'solo_weekly', 'activity'],
+      dispute_status: ['open', 'withdrawn', 'resolved'],
+      dispute_target: ['daily_step_summary', 'activity'],
       point_flag: ['implausible_steps'],
       report_status: ['open', 'reviewed', 'dismissed'],
       report_target: ['checkin'],

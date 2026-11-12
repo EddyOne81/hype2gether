@@ -68,12 +68,12 @@ Code is organised by domain:
 | rating_history       | party_id, user_id, round_id, rating_before, rating_after                                                                             | append-only audit log behind memberships.rating                   |
 | cards                | id, serial, user_id, kind, round_id or activity_id, rule_version, image_hash, created_at                                             | weekly cards hang off a round, activity cards off a workout       |
 | reports              | id, target_type, target_id, reporter_id, status                                                                                      | moderation                                                        |
+| disputes             | id, round_id, opened_by, target_type, target_id, reason, status                                                                      | an open dispute keeps its round provisional                       |
 
 Points are stored in centipoints (hundredths of a point), the unit `packages/scoring` computes
 in, and every column name says so.
 
-Future (do not create yet): zones, kit_definitions, kit_grants. `disputes` is referenced by
-`finalizeRound` but not yet modelled; ROUND-02 decides its shape.
+Future (do not create yet): zones, kit_definitions, kit_grants.
 
 ## Access rules (RLS summary)
 
@@ -89,7 +89,10 @@ policies decide which rows. `anon` holds no table access.
   those tables carry no write grant for any client role, so no policy change can open them.
 - Deadlines live in policies, not in the app: steps up to 12 h after a round ends, votes up to
   24 h after a check-in.
-- A check-in disappears for whoever reported it, immediately.
+- A check-in disappears for whoever reported it, immediately. Hiding is a view rule: the
+  integrity triggers still see the row, so a reporter's earlier vote is unaffected.
+- A locked-in member opens a dispute until the round is final and may withdraw their own;
+  only the server resolves one.
 - Storage: private `checkins` bucket, path `{party_id}/{round_id}/{user_id}/...`, read via signed URLs for members only.
 
 ## Key flows
