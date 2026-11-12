@@ -1,0 +1,11 @@
+# gitleaks configuration: default rules plus project-specific ones.
+title = "hype2gether"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "supabase-secret-key"
+description = "Supabase secret API key (server-only)"
+regex = '''sb_secret_[A-Za-z0-9_-]{20,}'''
+keywords = ["sb_secret_"]
