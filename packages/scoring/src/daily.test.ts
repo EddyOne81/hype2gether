@@ -4,7 +4,7 @@ import {
   photoCentipoints,
   requiredVotes,
   scoreDay,
-  stepCentipoints,
+  movementCentipoints,
 } from './daily';
 import { centipointsToPoints } from './format';
 
@@ -15,10 +15,10 @@ describe('required test cases (PRODUCT_BRIEF.md)', () => {
     const ids = members(5);
     const score = scoreDay(
       'm1',
-      { steps: 8000, checkin: { authorId: 'm1', voterIds: ['m2', 'm3'] } },
+      { steps: 8000, checkin: { authorId: 'm1', voterIds: ['m2', 'm3'] }, activities: [] },
       ids,
     );
-    expect(centipointsToPoints(score.stepCentipoints)).toBe(64);
+    expect(centipointsToPoints(score.movementCentipoints)).toBe(64);
     expect(centipointsToPoints(score.photoCentipoints)).toBe(20);
     expect(centipointsToPoints(score.totalCentipoints)).toBe(84);
   });
@@ -29,9 +29,9 @@ describe('required test cases (PRODUCT_BRIEF.md)', () => {
     expect(centipointsToPoints(photoCentipoints(2, 5))).toBe(20);
   });
 
-  it('25,000 steps → 80 step points (real steps are not altered)', () => {
+  it('25,000 steps → 80 movement points (real steps are not altered)', () => {
     const steps = 25_000;
-    expect(centipointsToPoints(stepCentipoints(steps))).toBe(80);
+    expect(centipointsToPoints(movementCentipoints(steps, 0))).toBe(80);
     expect(steps).toBe(25_000);
   });
 });
@@ -53,7 +53,7 @@ describe('requiredVotes', () => {
   });
 });
 
-describe('stepCentipoints', () => {
+describe('movementCentipoints (steps only, same as rule v1)', () => {
   it.each([
     [0, 0],
     [1, 0], // 0.008 points rounds down
@@ -64,11 +64,11 @@ describe('stepCentipoints', () => {
     [10_001, 8000],
     [1_000_000, 8000],
   ])('%i steps → %i centipoints', (steps, expected) => {
-    expect(stepCentipoints(steps)).toBe(expected);
+    expect(movementCentipoints(steps, 0)).toBe(expected);
   });
 
   it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])('rejects invalid steps %s', (steps) => {
-    expect(() => stepCentipoints(steps)).toThrow(RangeError);
+    expect(() => movementCentipoints(steps, 0)).toThrow(RangeError);
   });
 });
 
@@ -124,7 +124,11 @@ describe('countValidVotes', () => {
   it('self + duplicate + outsider votes cannot fake full photo points', () => {
     const score = scoreDay(
       'm1',
-      { steps: 0, checkin: { authorId: 'm1', voterIds: ['m1', 'm1', 'm2', 'm2', 'x', 'y'] } },
+      {
+        steps: 0,
+        checkin: { authorId: 'm1', voterIds: ['m1', 'm1', 'm2', 'm2', 'x', 'y'] },
+        activities: [],
+      },
       ids,
     );
     expect(score.photoCentipoints).toBe(1000); // only m2 counts: 1 of q = 2
@@ -133,9 +137,10 @@ describe('countValidVotes', () => {
 
 describe('scoreDay', () => {
   it('missing step data scores 0 but is flagged as not synced (never shown as 0 steps)', () => {
-    const score = scoreDay('m1', { steps: null, checkin: null }, members(3));
+    const score = scoreDay('m1', { steps: null, checkin: null, activities: [] }, members(3));
     expect(score).toEqual({
-      stepCentipoints: 0,
+      movementCentipoints: 0,
+      countedRideMetres: 0,
       photoCentipoints: 0,
       totalCentipoints: 0,
       hasStepData: false,
@@ -143,13 +148,15 @@ describe('scoreDay', () => {
   });
 
   it('a synced day with 0 steps is distinct from a missing day', () => {
-    expect(scoreDay('m1', { steps: 0, checkin: null }, members(3)).hasStepData).toBe(true);
+    expect(
+      scoreDay('m1', { steps: 0, checkin: null, activities: [] }, members(3)).hasStepData,
+    ).toBe(true);
   });
 
   it('no check-in → no photo points', () => {
-    expect(scoreDay('m1', { steps: 10_000, checkin: null }, members(4)).totalCentipoints).toBe(
-      8000,
-    );
+    expect(
+      scoreDay('m1', { steps: 10_000, checkin: null, activities: [] }, members(4)).totalCentipoints,
+    ).toBe(8000);
   });
 
   it('caps a perfect day at 100 points', () => {
@@ -158,6 +165,7 @@ describe('scoreDay', () => {
       {
         steps: 50_000,
         checkin: { authorId: 'm1', voterIds: ['m2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8'] },
+        activities: [],
       },
       members(8),
     );
@@ -166,11 +174,17 @@ describe('scoreDay', () => {
 
   it('rejects a check-in that belongs to someone else', () => {
     expect(() =>
-      scoreDay('m1', { steps: 0, checkin: { authorId: 'm2', voterIds: ['m3'] } }, members(3)),
+      scoreDay(
+        'm1',
+        { steps: 0, checkin: { authorId: 'm2', voterIds: ['m3'] }, activities: [] },
+        members(3),
+      ),
     ).toThrow();
   });
 
   it('rejects scoring a member outside the locked list', () => {
-    expect(() => scoreDay('late-joiner', { steps: 9000, checkin: null }, members(3))).toThrow();
+    expect(() =>
+      scoreDay('late-joiner', { steps: 9000, checkin: null, activities: [] }, members(3)),
+    ).toThrow();
   });
 });

@@ -44,7 +44,7 @@ App config: copy `apps/mobile/.env.example` to `apps/mobile/.env` and fill in th
 
 ```
 apps/mobile         Expo app (Expo Router, dev build)
-packages/scoring    Pure scoring engine (rule v1)
+packages/scoring    Pure scoring engine (rule v2)
 packages/shared     Generated DB types, zod contracts, constants
 supabase/           Migrations, Edge Functions, SQL tests, seed (fake data only)
 docs/               Product, architecture, security, ADRs
