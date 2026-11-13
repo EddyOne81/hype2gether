@@ -29,18 +29,19 @@ App config: copy `apps/mobile/.env.example` to `apps/mobile/.env` and fill in th
 
 ## Commands
 
-| Command                                   | What it does                                                   |
-| ----------------------------------------- | -------------------------------------------------------------- |
-| `pnpm lint`                               | ESLint + Prettier check                                        |
-| `pnpm typecheck`                          | TypeScript in every workspace                                  |
-| `pnpm test`                               | Vitest in every workspace                                      |
-| `pnpm format`                             | Format everything with Prettier                                |
-| `pnpm --filter @hype2gether/mobile start` | Metro dev server for the development build                     |
-| `pnpm db:start` / `db:stop`               | Local Supabase stack (Docker)                                  |
-| `pnpm test:db`                            | RLS / SQL tests against the local stack                        |
-| `pnpm gen:types`                          | Regenerate `packages/shared/src/db.types.ts` from the local DB |
-| `pnpm build:functions`                    | Regenerate the Edge Function copy of the shared packages       |
-| `pnpm check:functions`                    | Type-check and lint the Edge Functions (needs Deno installed)  |
+| Command                                    | What it does                                                   |
+| ------------------------------------------ | -------------------------------------------------------------- |
+| `pnpm lint`                                | ESLint + Prettier check                                        |
+| `pnpm typecheck`                           | TypeScript in every workspace                                  |
+| `pnpm test`                                | Vitest in every workspace                                      |
+| `pnpm format`                              | Format everything with Prettier                                |
+| `pnpm --filter @hype2gether/mobile start`  | Metro dev server for the development build                     |
+| `pnpm --filter @hype2gether/mobile bundle` | Export an iOS bundle, proving the app still builds             |
+| `pnpm db:start` / `db:stop`                | Local Supabase stack (Docker)                                  |
+| `pnpm test:db`                             | RLS / SQL tests against the local stack                        |
+| `pnpm gen:types`                           | Regenerate `packages/shared/src/db.types.ts` from the local DB |
+| `pnpm build:functions`                     | Regenerate the Edge Function copy of the shared packages       |
+| `pnpm check:functions`                     | Type-check and lint the Edge Functions (needs Deno installed)  |
 
 ## Layout
 

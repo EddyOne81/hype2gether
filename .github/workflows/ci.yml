@@ -37,6 +37,11 @@ jobs:
       # ESLint ignores `supabase/` and `pnpm typecheck` only walks the workspace packages, so
       # without this the Edge Functions would be the one place no tool looks.
       - run: pnpm check:functions
+      # Type-checking does not prove the app bundles. Metro resolves modules its own way, and
+      # the workspace packages reach it through pnpm's symlinks, so an export is the cheapest
+      # thing that actually runs the bundler over the real dependency graph. It needs no
+      # EXPO_PUBLIC_* values: config is read lazily at runtime, not at module load.
+      - run: pnpm --filter @hype2gether/mobile bundle
 
   gitleaks:
     name: Secret scan
